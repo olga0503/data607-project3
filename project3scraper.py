@@ -11,7 +11,7 @@ def scrape_site():
     locations = [("New+York%2C+NY","NYC"), ("Los+Angeles%2C+CA","LAN"), ("San+Diego%2C+CA", "SAD"), ("Chicago%2C+IL","CHI"), ("Houston%2C+TX","HOU"), ("Phoenix%2C+AZ", "PHO"), ("Philadelphia%2C+PA", "PHI"), ("San+Antonio%2C+TX", "SAN"), ("Dallas%2C+TX", "DAL"), ("San+Jose%2C+CA", "SAJ")]
     #locations = [("New+York%2C+NY","NY")]
     index = 0
-    drop_l = ["new","york", "ny", "nyc", "los", "angeles", "ca", "chicago", "il", "houston", "tx", "phoenix", "az", "philadelphia", "pa", "san", "antonio", "diego", "dallas", "jose", "desired","30","days","ago","upload", "your", "resume", "sexual", "gender", "identity", "orientation" ,"equal", "opportunity", "employer" , "minority", "jobs", "job" , "full", "time", "female", "disability", "affirmative", "action", "contact", "us", "race", "color", "e", "g", "emploment", "without", "regard", "veteran", "diversity", "applicants", "discrimination", "sex"]
+    drop_l = ["new","york", "ny", "nyc", "los", "angeles", "ca", "chicago", "il", "houston", "tx", "phoenix", "az", "philadelphia", "pa", "san", "antonio", "diego", "dallas", "jose", "desired","30","days","ago","upload", "your", "resume", "sexual", "gender", "identity", "orientation" ,"equal", "opportunity", "employer" , "minority", "jobs", "job" , "full", "time", "female", "disability", "affirmative", "action", "contact", "us", "race", "color", "e", "g", "emploment", "without", "regard", "veteran", "veterans", "diversity", "applicants", "discrimination", "sex", "u", "s", "united", "states", "military", "i", "hereby", "agree", "national", "origin", "marital", "status", "learn", "more", "view"]
     global_l = []
     global_summary_d = {}
     loc_summary_d = {}
@@ -28,7 +28,7 @@ def scrape_site():
         req = Request(url,headers=hdr)
         page = urlopen(req)
         soup = BeautifulSoup(page, 'html.parser')
-        links = soup.find_all('a', attrs={'class': re.compile('.*turnstileLink')})
+        links = soup.find_all('a', attrs={'data-tn-element': re.compile('jobTitle')})
         for link in links:
             if link['href'][0:100] not in link_check:
                 link_check.append(link['href'][0:100])    
@@ -37,7 +37,7 @@ def scrape_site():
                 #print(link_check)
                 entries_l = []
                 try:
-                    if link['href'].startswith('/pagead'):
+                    if link['href'].startswith(('/pagead','/company')):
                         sub_url = 'https://www.indeed.com' + link['href']
                     elif link['href'].startswith('https'):
                         sub_url = link['href']
@@ -53,12 +53,12 @@ def scrape_site():
                     #'div','span'
                     for entry in raw_entries:
                         try:
-                            #print(entry.get_text())
-                            #print("______________")
                             entries_l.extend(tokenizer.tokenize(entry.get_text()))
                             full_l.extend(tokenizer.tokenize(entry.get_text()))
                             global_l.extend(tokenizer.tokenize(entry.get_text()))
                         except:
+                            print(entry.get_text())
+                            print("______________")
                             pass
                     #print(entries_l)
                     entries_l = [entry.lower() for entry in entries_l if entry not in nltk.corpus.stopwords.words('english')]
@@ -71,6 +71,8 @@ def scrape_site():
                     index += 1
                     time.sleep(1)
                 except:
+                    print(link)
+                    print("______________")
                     pass
         links_df = pd.DataFrame.from_dict(loc_d, orient="index")
         links_df.to_csv("./links_data_" + location[1] + ".csv", index = False)
