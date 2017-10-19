@@ -11,7 +11,7 @@ def scrape_site():
     locations = [("New+York%2C+NY","NYC"), ("Los+Angeles%2C+CA","LAN"), ("Chicago%2C+IL","CHI"), ("Houston%2C+TX","HOU"), ("Phoenix%2C+AZ", "PHO"), ("Philadelphia%2C+PA", "PHI"), ("San+Antonio%2C+TX", "SAN"), ("San+Diego%2C+CA", "SAD"), ("Dallas%2C+TX", "DAL"), ("San+Jose%2C+CA", "SAJ")]
     #locations = [("New+York%2C+NY","NY")]
     index = 0
-    drop_l = ["desired","30","days","ago","upload", "your", "resume", "sexual", "gender", "identity", "orientation","equal","opportunity","employer","minority","jobs","job","full","time","female","disability","affirmatve","action","contact","us","new","york", "ny", "los", "angeles", "ca", "chicago", "il", "houston", "tx", "phoenix", "az", "philadelphia", "pa", "san", "antonio", "diego", "dallas", "jose"]
+    drop_l = ["new","york", "ny", "los", "angeles", "ca", "chicago", "il", "houston", "tx", "phoenix", "az", "philadelphia", "pa", "san", "antonio", "diego", "dallas", "jose", "desired","30","days","ago","upload", "your", "resume", "sexual", "gender", "identity", "orientation" ,"equal", "opportunity", "employer" , "minority", "jobs", "job" , "full", "time", "female", "disability", "affirmatve", "action", "contact", "us", "race", "color", "e", "g", "emploment", "without", "regard", "veteran"]
     global_l = []
     global_summary_d = {}
     loc_summary_d = {}
@@ -20,12 +20,12 @@ def scrape_site():
         full_l = []
         #try:
         loc_d = {}
-        url = 'https://www.indeed.com/jobs?as_and=data+science&as_phr=&as_any=&as_not=&as_ttl=&as_cmp=&jt=all&st=&salary=&radius=100&l=' + loc + '&fromage=any&limit=5&sort=&psf=advsrch'
+        url = 'https://www.indeed.com/jobs?as_and=data+science&as_phr=&as_any=&as_not=&as_ttl=&as_cmp=&jt=all&st=&salary=&radius=100&l=' + loc + '&fromage=any&limit=100&sort=&psf=advsrch'
         hdr = {'User-Agent': 'Mozilla/5.0'}
         req = Request(url,headers=hdr)
         page = urlopen(req)
         soup = BeautifulSoup(page, 'html.parser')
-        links = soup.find_all('a', attrs={'class': re.compile('jobtitle turnstileLink')})
+        links = soup.find_all('a', attrs={'class': re.compile('.*turnstileLink')})
         for link in links:
             print(link['href'])
             entries_l = []
@@ -41,7 +41,8 @@ def scrape_site():
                 req = Request(sub_url,headers=hdr)
                 page = urlopen(req)
                 soup = BeautifulSoup(page, 'html.parser')
-                raw_entries = soup.find_all(['p','div','span','li'], text=True) 
+                raw_entries = soup.find_all(['p','li'], text=True) 
+                #'div','span'
                 for entry in raw_entries:
                     try:
                         #print(entry.get_text())
