@@ -23,6 +23,8 @@
 
 #### Presentation
 - Data was collected from Indeed.com
+  - Actual job posting
+  - Desired Experience section
 - Study was set up to return job postings from the 10 largest cities by population
 - Efforts were taken to automatically exclude duplicate postings
 - Data was then tokenized and common words (traditional stop words and custom selection of words) were removed.
