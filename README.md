@@ -13,10 +13,13 @@
 - For each object returned, a single list was compiled for the entire job posting and then tokenized.
 - Common "stop words" were then removed along with the drop_l words.
 - Frequency distributions were then performed on the resulting list, the resulting list in bigrams form, and the resulting list in trigrams form.
-- The location, job title, link, processed list, and frequency distribution results (50 most common for single, bigram, trigram) were then saved in a dictionary for the following:
-  - Per job posting - labeled list_data_LOCATION_.csv
+- The location, job title, link, processed list, and frequency distribution results (50 most common for single, bigram, trigram) were then saved in the following files:
+  - Per job posting - links_data_LOCATION_.csv
   - Per location - links_summary_data.csv
   - Per entire study - links_global_summary_data.csv
+- Additionally, the "Desired Experience" section from each job posting was scraped and saved in the following files:
+  - Per location - links_exp_summary_data.csv
+  - Per entire study - links_exp_global_summary_data.csv
 
 #### Presentation
 - Data was collected from Indeed.com
@@ -25,6 +28,6 @@
 - Data was then tokenized and common words (traditional stop words and custom selection of words) were removed.
 - Simple frequency distributions for single, bigram, and trigrams, were then performed and resulting data was saved to csv files on github.
 - Data exists on the following levels:
-  - Individual
+  - Individual Posting
   - By location
   - Full study
