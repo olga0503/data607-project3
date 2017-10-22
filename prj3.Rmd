@@ -1,0 +1,222 @@
+---
+title: "Data 607, project3, Fall 2017"
+author: "Group 7"
+date: "October 20, 2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=65),tidy=TRUE)
+```
+
+#load libraries
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(rvest)
+suppressWarnings(library(dplyr))
+suppressWarnings(library(rvest))
+
+```
+# General Information:
+The end result of the web scraping was several CSV files containing various information about data scientist job requirements including a lot of noise. Those CSV files were further processed and finally two CSVs were created with filtered information specific to soft skills and technical skills.
+
+aforementioned CSVs were brought into R for some tidy operations and analysis.
+
+
+#load data to find soft skills
+```{r}
+
+sumDS <- read.csv("C:\\temp\\project3\\links_summary_data.csv", sep = ",", header=TRUE,  stringsAsFactors = FALSE  )
+```
+
+A vector is created with the words that are tipically used to construct and describe soft skill sets:
+```{r}
+skill_lexicon <- c('problem', 'solving', 'verbal','attention','written','oral','management','friendly', 'energetic', 'detail', 'oriented', 'leadership','skill', 'skills','emotional','intelligence','communication')
+```
+
+
+
+since soft skills are a bit descriptive in nature, they are better expressed through combination of words. Therefore trigrams are used to find soft skills. The function below look through all the trigrams and compare each of the word with the skill lexicon and finally return a data frame with matching rows that contain soft skill information:
+```{r}
+createDS <- function(x,y) {
+  
+trigram <- x
+cityname <- y
+
+ds <- data.frame(str_extract_all(trigram,"\\({2}.+?[[:digit:]]{1,}"))
+colnames(ds)<-"A"
+ds$A <- str_sub(ds$A,2)
+ds <- mutate(ds, skills = str_sub(ds$A,str_locate(ds$A, "\\(?.+?\\)")[,1],str_locate(ds$A, "\\(?.+?\\)")[,2]))
+ds <- mutate(ds, freq = as.numeric(str_sub(ds$A,str_locate(ds$A, "\\(?.+?\\)")[,2]+2)))
+ds <- ds[,2:3]
+ds <- mutate(ds,city=y)
+na.omit(ds)
+ds$skills <- str_replace_all(ds$skills,"[\\(\\)]","")
+ds$skills <- str_replace_all(ds$skills,",","")
+ds$skills <- str_replace_all(ds$skills,"\\'","")
+
+ds_filltered <- c()
+
+for (j in 1:nrow(ds)) {
+  if (any(strsplit(paste(ds$skills[j], collapse = " "), ' ')[[1]] %in% skill_lexicon == TRUE)){
+    ds_filltered <- rbind(ds_filltered,ds[j,])
+  }
+}
+
+return (ds_filltered)
+  
+}
+
+```
+
+A data frame is created with soft skill information for all cities:
+```{r}
+skill_cities <- c()
+for (i in 1:nrow(sumDS))
+skill_cities <- rbind(skill_cities,createDS(sumDS$most_common_trigrams[i],sumDS$location[i]))
+row.names(skill_cities) <- NULL
+
+```
+Since same soft skills can be expressed through different words, rows belong to specfic soft skills are combined:
+
+```{r}
+communication <- c("verbal","written","oral","communication")
+management <- c("project", "product","program","management")
+social <- c("friendly")
+detail <- c("attention", "detail","depending")
+
+for (i in 1:nrow(skill_cities)){
+   if (any(strsplit(paste(skill_cities$skills[i], collapse = " "), ' ')[[1]] %in% communication == TRUE)){
+    skill_cities$skills[i] <- "communication skill"
+   }
+  else if (any(strsplit(paste(skill_cities$skills[i], collapse = " "), ' ')[[1]] %in% management == TRUE)){
+    skill_cities$skills[i] <- "management skill"
+  }
+  
+  else if (any(strsplit(paste(skill_cities$skills[i], collapse = " "), ' ')[[1]] %in% social == TRUE)){
+    skill_cities$skills[i] <- "social skill"
+  }
+  else if (any(strsplit(paste(skill_cities$skills[i], collapse = " "), ' ')[[1]] %in% detail == TRUE)){
+    skill_cities$skills[i] <- "detail oriented"
+   }
+}
+
+skill_cities <- skill_cities %>%  group_by(skills, city)%>% summarise(freq = sum(freq))
+
+skill_all <- skill_cities %>%  group_by(skills)%>% summarise(freq = sum(freq))
+
+head(skill_cities)
+
+
+
+```
+
+#load data to find technical skills
+```{r}
+data<-read.csv('c:\\temp\\project3\\links_exp_summary_data.csv')
+
+```
+
+further processing:
+```{r}
+df<-data.frame(data)
+df$most_common<-as.character(df$most_common)
+df$most_common_bigrams<-as.character(df$most_common_bigrams)
+df$most_common_trigrams<-as.character(df$most_common_trigrams)
+df$location<-as.character(df$location)
+
+location<-c("CHI" ,"CHI","CHI","DAL","DAL","DAL", "HOU","HOU","HOU", "LAN","LAN","LAN", "NYC","NYC","NYC", "PHI","PHI","PHI", "PHO","PHO","PHO", "SAD","SAD","SAD", "SAJ","SAJ","SAJ", "SAN","SAN","SAN")
+s<-c()
+n<-c()
+sbigrams<-c()
+nbigrams<-c()
+strigrams<-c()
+ntrigrams<-c()
+
+```
+
+create data frame for technical skill:
+```{r}
+ for (i in 1:10) {
+    number<-str_extract_all(df$most_common[i],"[0-9]+")[[1]][c(1,2,3)]
+    tech_skill<-str_extract_all(df$most_common[i],"'[a-z ]+'")[[1]][c(1,2,3)]
+    n<-c(n,number)
+    s<-c(s,tech_skill)
+
+    tech_skill<-str_extract_all(df$most_common_bigrams[i],"[a-z '']+,[a-z '']+")[[1]][c(1,2,3)]
+    number<-str_extract_all(df$most_common_bigrams[i],"[0-9]+")[[1]][c(1,2,3)]
+    sbigrams<-c(sbigrams,tech_skill)
+    nbigrams<-c(nbigrams,number)
+
+    tech_skill<-str_extract_all(df$most_common_trigrams[1],"[a-z '']+,[a-z '']+,[a-z '']+")[[1]][c(1,2,3)]
+    number<-str_extract_all(df$most_common_bigrams[i],"[0-9]+")[[1]][c(1,2,3)]
+    strigrams<-c(strigrams,tech_skill)
+    ntrigrams<-c(ntrigrams,number)
+}
+
+tech_df<-data.frame(location,s,n,sbigrams,nbigrams,strigrams,ntrigrams)
+names(tech_df)<-c('location','tech_skill','frequency','bigrams','bigrams_frequency','trigrams','trigrams_frequency' )
+
+tech_df_all <- tech_df %>%  group_by(tech_skill)%>% summarise(freq = sum(as.numeric(frequency)))
+head(tech_df)
+
+```
+
+# Visualization for soft skill:
+
+Figure 1:
+```{r}
+
+ggplot(skill_all, aes(x = skills, y = freq)) + geom_point(aes(color = freq, 
+    size = freq)) + labs(title = "Most desired soft skills for Data Scientist", 
+    y = "Frequency") + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 1))
+
+```
+
+Figure 1 depicts  managemnt and communication are the two most sought after soft skills for data scientist job in general.
+
+
+Figure 2:
+```{r}
+ggplot(skill_cities, aes(skills, freq)) + geom_bar(aes(fill = city), 
+    stat = "identity", position = "dodge") + labs(title = "Most desired soft skills for Data Scientist by city", 
+    y = "soft skills") + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 1))
+
+```
+
+Figure 2 shows different desired soft skills for data scientist in the cities of interest. It is interesting to find that San Diego had a huge emphasis on management skill while San Jose is the only city that focused on social skill.  
+
+
+
+# Visualization for technical skill:
+
+Figure 3:
+```{r}
+
+ggplot(tech_df_all, aes(x = tech_skill, y = freq)) + geom_bar(aes(fill = tech_skill),  stat = "identity", position = "dodge")     + labs(title = "Most desired technical skills for Data Scientist", 
+    y = "Frequency", x = "technical skill") + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 1))
+
+```
+
+'machine learning', 'r' and 'python' are the winners for most sought after technical skills for data scientist as depicted in figure 3.
+
+
+
+Figure 4:
+```{r}
+ggplot(tech_df, aes(x = location, y = frequency)) + geom_bar(aes(fill = tech_skill), 
+    stat = "identity", position = "dodge") + labs(title = "Most desired technical skills for Data Scientist by city", 
+    y = "technical skills") + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 1))
+
+```
+
+As in the general case 'machine learning', 'r' and 'python'are also most desired technical skills in most cities. If we ignore "data science" as too broad all cities sought after only those skills except Phoenix that surprisingly did not need any of those three technical skills.
