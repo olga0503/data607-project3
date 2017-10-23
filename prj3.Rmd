@@ -13,13 +13,11 @@ knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=65),tidy=TRUE)
 
 #load libraries
 ```{r}
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(stringr)
-library(rvest)
-suppressWarnings(library(dplyr))
-suppressWarnings(library(rvest))
+suppressWarnings(suppressMessages(library(ggplot2)))
+suppressWarnings(suppressMessages(library(tidyr)))
+suppressWarnings(suppressMessages(library(stringr)))
+suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(rvest)))
 
 ```
 # General Information:
@@ -31,7 +29,7 @@ aforementioned CSVs were brought into R for some tidy operations and analysis.
 #load data to find soft skills
 ```{r}
 
-sumDS <- read.csv("C:\\temp\\project3\\links_summary_data.csv", sep = ",", header=TRUE,  stringsAsFactors = FALSE  )
+sumDS <- read.csv("https://raw.githubusercontent.com/john-grando/data607-project3/master/links_summary_data.csv", sep = ",", header=TRUE,  stringsAsFactors = FALSE  )
 ```
 
 A vector is created with the words that are tipically used to construct and describe soft skill sets:
@@ -118,7 +116,7 @@ head(skill_cities)
 
 #load data to find technical skills
 ```{r}
-data<-read.csv('c:\\temp\\project3\\links_exp_summary_data.csv')
+data<-read.csv('https://raw.githubusercontent.com/john-grando/data607-project3/master/links_exp_summary_data.csv')
 
 ```
 
